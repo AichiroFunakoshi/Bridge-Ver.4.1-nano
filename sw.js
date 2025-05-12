@@ -1,9 +1,11 @@
 /**
  * Service Worker for Voice Translator PWA
  * - オフライン対応とキャッシュ管理
+ * - モバイル最適化とUX改善
+ * - バージョン: 2.0 (2025-05-13)
  */
 
-const CACHE_NAME = 'voice-translator-cache-v1';
+const CACHE_NAME = 'voice-translator-cache-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -69,41 +71,81 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Stale-While-Revalidate戦略に改善（アプリ高速表示と自動更新）
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
-        // キャッシュがあればそれを返す
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // キャッシュがなければネットワークに取りに行く
-        return fetch(event.request)
-          .then(response => {
+        // クローンされたリクエストを用意
+        const fetchPromise = fetch(event.request)
+          .then(networkResponse => {
             // 有効なレスポンスのみキャッシュ
-            if (!response || response.status !== 200) {
-              return response;
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  // 新しいバージョンをキャッシュに保存
+                  cache.put(event.request, responseToCache);
+                });
             }
-
-            // レスポンスをクローンしてキャッシュ（レスポンスは一度しか使用できないため）
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+            return networkResponse;
           })
           .catch(error => {
-            console.log('フェッチに失敗:', error);
-            // オフライン時のフォールバックを返す
-            return new Response(
-              '<html><body><h1>オフラインです</h1><p>インターネット接続がありません。</p></body></html>',
-              {
-                headers: { 'Content-Type': 'text/html' }
-              }
-            );
+            console.log('ネットワークフェッチに失敗:', error);
+            // HTML要求の場合は専用のオフラインページを提供
+            if (event.request.headers.get('Accept').includes('text/html')) {
+              return new Response(
+                `<!DOCTYPE html>
+                <html lang="ja">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>オフラインモード</title>
+                  <style>
+                    body {
+                      font-family: -apple-system, sans-serif;
+                      background: #0d0d0d;
+                      color: #f4f4f4;
+                      margin: 0;
+                      padding: 20px;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 100vh;
+                      text-align: center;
+                    }
+                    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+                    p { line-height: 1.5; margin-bottom: 1.5rem; }
+                    .icon { font-size: 3rem; margin-bottom: 1rem; }
+                    .retry-btn {
+                      background: #444;
+                      color: white;
+                      border: none;
+                      padding: 12px 20px;
+                      border-radius: 8px;
+                      font-size: 1rem;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="icon">📶</div>
+                  <h1>オフラインモード</h1>
+                  <p>インターネット接続が見つかりません。<br>接続が復旧したら自動的に再接続します。</p>
+                  <button class="retry-btn" onclick="window.location.reload()">再試行</button>
+                </body>
+                </html>`,
+                {
+                  headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                }
+              );
+            }
+            // 他のリソースの場合はエラーを伝播
+            throw error;
           });
+
+        // キャッシュにあればそれをまず返す（高速表示）
+        // そして並行してネットワークからの取得も試みる（バックグラウンド更新）
+        return cachedResponse || fetchPromise;
       })
   );
 });
