@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>リアルタイム音声翻訳 PWA</title>
+
+  <!-- iOS PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./images/icons/apple-touch-icon-180x180.png">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="loadingOverlay" class="loading-overlay">Loading...</div>
+
+  <header class="app-header">
+    <h1 class="app-title">リアルタイム音声翻訳</h1>
+    <button id="settingsButton" class="settings-btn">⚙️</button>
+  </header>
+
+  <main class="container">
+    <section class="captions">
+      <p id="myCaption" class="caption self">―</p>
+      <p id="translation" class="caption trans">―</p>
+    </section>
+
+    <section class="controls">
+      <button id="startJapaneseBtn" class="control-btn">🎤 日本語</button>
+      <button id="startEnglishBtn"  class="control-btn">🎤 English</button>
+      <button id="stopBtn"          class="control-btn stop">■ Stop</button>
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <dialog id="settingsModal" class="settings-modal">
+    <h2>設定</h2>
+    <label>
+      OpenAI API Key:
+      <input type="password" id="apiKeyInput" placeholder="sk-..." value="">
+    </label>
+    <div class="modal-actions">
+      <button id="saveKeyBtn">保存</button>
+      <button onclick="document.getElementById('settingsModal').close()">閉じる</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
