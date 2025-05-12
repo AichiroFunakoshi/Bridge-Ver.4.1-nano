@@ -1,0 +1,89 @@
+/* Real-Time Voice Translator PWA – CSS */
+* { box-sizing: border-box; }
+
+body,html{
+  margin:0;padding:0;
+  height:100%;width:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  background:#0d0d0d;
+  color:#f4f4f4;
+}
+
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.5rem 1rem;
+  background:#111;
+  border-bottom:1px solid #333;
+}
+
+.app-title{font-size:1.25rem;font-weight:600;}
+.settings-btn{background:none;border:none;color:#f4f4f4;font-size:1.5rem;}
+
+.container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:calc(100% - 56px);
+  gap:1rem;
+  padding:1rem;
+}
+
+.captions{
+  width:100%;
+  max-width:600px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  gap:0.5rem;
+}
+
+.caption{
+  padding:0.5rem 1rem;
+  border-radius:0.75rem;
+  background:#222;
+  font-size:1.1rem;
+  line-height:1.4;
+}
+.caption.self{background:#1a1a1a;}
+.caption.trans{background:#003366;}
+
+.controls{
+  display:flex;
+  gap:1rem;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.control-btn{
+  padding:0.75rem 1.25rem;
+  border:none;
+  border-radius:0.75rem;
+  background:#444;
+  color:#fff;
+  font-size:1rem;
+}
+.control-btn.stop{background:#b30000;}
+
+.loading-overlay{
+  position:fixed;inset:0;
+  display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.6);
+  z-index:9999;
+  color:#fff;font-size:1.2rem;
+}
+
+.settings-modal{
+  border:none;
+  border-radius:0.75rem;
+  padding:1rem;
+  background:#1a1a1a;
+  color:#fff;
+}
+.settings-modal::backdrop{background:rgba(0,0,0,0.7);} 
+.settings-modal input{
+  width:100%;padding:0.5rem;margin-top:0.5rem;margin-bottom:1rem;
+  border-radius:0.5rem;border:none;
+}
+.modal-actions{display:flex;gap:0.5rem;justify-content:flex-end;}
