@@ -1,5 +1,15 @@
 // リアルタイム音声翻訳 - JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Service Workerの登録
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+                console.log('Service Worker登録成功:', registration.scope);
+            })
+            .catch(error => {
+                console.error('Service Worker登録失敗:', error);
+            });
+    }
     // デフォルトAPIキー
     const DEFAULT_OPENAI_API_KEY = '';
     
