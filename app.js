@@ -36,7 +36,6 @@ let currentLang   = 'ja';
 let history       = []; // {role, content}
 let isRecording   = false;
 let isProcessing  = false;
-let translationController = null; // AbortControllerを保持
 
 // ====== helpers ==========================================
 function showLoading(b){loadingOverlay.style.display=b?'flex':'none';}
@@ -103,11 +102,6 @@ async function startRecording(lang) {
     isRecording = true;
     showRecordingIndicator(true);
     
-    // 翻訳と字幕をリセット
-    myCaptionEl.textContent = '―';
-    translationEl.textContent = '―';
-    history = [];
-    
     mediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
     mediaRecorder = new MediaRecorder(mediaStream, {mimeType: 'audio/webm;codecs=opus'});
 
@@ -122,8 +116,9 @@ async function startRecording(lang) {
           if (transcript) {
             updateCaption(transcript, false);
             addHistory('user', transcript);
-            const translation = await translateStream(transcript);
+            const translation = await translate();
             if (translation) {
+              updateCaption(translation, true);
               addHistory('assistant', translation);
             }
           }
@@ -151,16 +146,8 @@ function stopRecording() {
   if (mediaStream) {
     mediaStream.getTracks().forEach(t => t.stop());
   }
-  
-  // 進行中の翻訳をキャンセル
-  if (translationController) {
-    translationController.abort();
-    translationController = null;
-  }
-  
   chunks = [];
   isRecording = false;
-  isProcessing = false;
   showRecordingIndicator(false);
 }
 
@@ -182,7 +169,7 @@ async function transcribe(blob, lang) {
     });
     
     if (!res.ok) {
-      console.warn('primary ASR failed, fallback to alternative model');
+      console.warn('primary ASR failed, fallback');
       fd.set('model', ASR_FALLBACK_MODEL);
       res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
@@ -210,30 +197,18 @@ async function transcribe(blob, lang) {
   }
 }
 
-async function translateStream(text) {
-  if (!text || text.trim() === '') return '';
-  
-  // 進行中の翻訳があればキャンセル
-  if (translationController) {
-    translationController.abort();
-  }
-  
-  translationController = new AbortController();
-  const signal = translationController.signal;
-  
+async function translate() {
   showLoading(true);
-  let translationResult = '';
-  
   try {
-    // オフライン状態をチェック
-    if (!navigator.onLine) {
-      throw new Error('オフラインです。インターネット接続を確認してください。');
-    }
-    
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...history.slice(-SLIDING_CONTEXT)
     ];
+    
+    // オフライン状態をチェック
+    if (!navigator.onLine) {
+      throw new Error('オフラインです。インターネット接続を確認してください。');
+    }
     
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -244,9 +219,8 @@ async function translateStream(text) {
       body: JSON.stringify({
         model: TRANSLATE_MODEL,
         messages,
-        stream: true  // ストリーミング有効化
-      }),
-      signal
+        stream: false
+      })
     });
     
     if (!res.ok) {
@@ -260,49 +234,11 @@ async function translateStream(text) {
       throw new Error(errorData.error?.message || `APIエラー: ${res.status}`);
     }
     
-    // ストリーミングレスポンスを処理
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    
-    // 翻訳テキストの表示をクリア
-    updateCaption('', true);
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      // チャンクをデコード
-      const chunk = decoder.decode(value);
-      
-      // チャンクから各行を処理
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-          try {
-            const data = JSON.parse(line.substring(6));
-            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-              const content = data.choices[0].delta.content;
-              translationResult += content;
-              updateCaption(translationResult, true);
-            }
-          } catch (e) {
-            console.error('ストリーミングレスポンス解析エラー:', e);
-          }
-        }
-      }
-    }
-    
+    const data = await res.json();
     showLoading(false);
-    return translationResult;
+    return data.choices[0].message.content.trim();
   } catch (error) {
     showLoading(false);
-    
-    // 中断エラーの場合は警告を表示しない
-    if (error.name === 'AbortError') {
-      console.log('翻訳リクエストがキャンセルされました');
-      return '';
-    }
-    
     console.error('翻訳エラー:', error);
     showError(error.message || '翻訳中にエラーが発生しました');
     return '';
