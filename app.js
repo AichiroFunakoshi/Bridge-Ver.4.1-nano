@@ -1,15 +1,5 @@
 // リアルタイム音声翻訳 - JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Service Workerの登録
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(registration => {
-                console.log('Service Worker登録成功:', registration.scope);
-            })
-            .catch(error => {
-                console.error('Service Worker登録失敗:', error);
-            });
-    }
     // デフォルトAPIキー
     const DEFAULT_OPENAI_API_KEY = '';
     
@@ -258,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('音声認識終了');
             listeningIndicator.classList.remove('visible');
             
-            // 録音中の場合は再開
+            // Recordingの場合は再開
             if (isRecording) {
                 try {
                     recognition.start();
@@ -316,9 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // 言語インジケータを更新
             if (selectedLanguage === 'ja') {
                 sourceLanguage.textContent = '日本語';
-                targetLanguage.textContent = '英語';
+                targetLanguage.textContent = 'English';
             } else {
-                sourceLanguage.textContent = '英語';
+                sourceLanguage.textContent = 'English';
                 targetLanguage.textContent = '日本語';
             }
             
@@ -362,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startEnglishBtn.style.display = 'none';
             stopBtn.style.display = 'flex';
             stopBtn.disabled = false;
-            resetBtn.disabled = true; // 録音中はリセット無効化
+            resetBtn.disabled = true; // Recordingはリセット無効化
             resetBtn.style.opacity = '0.5';
         } else {
             // 開始ボタンを表示、停止ボタンを非表示
@@ -394,16 +384,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 言語インジケータを更新
         if (language === 'ja') {
             sourceLanguage.textContent = '日本語';
-            targetLanguage.textContent = '英語';
+            targetLanguage.textContent = 'English';
         } else {
-            sourceLanguage.textContent = '英語';
+            sourceLanguage.textContent = 'English';
             targetLanguage.textContent = '日本語';
         }
         
         // UIを更新
         isRecording = true;
         document.body.classList.add('recording');
-        status.textContent = '録音中';
+        status.textContent = 'Recording';
         status.classList.remove('idle', 'error');
         status.classList.add('recording');
         
