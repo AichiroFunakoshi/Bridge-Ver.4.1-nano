@@ -1,8 +1,8 @@
 /**
- * Real-Time Voice Translator PWA – GPT-4o Integration
+ * Brige.Ver.2.0 PWA – GPT-4o Integration
  * ==================================================
  *  - Transcription: gpt-4o-mini-transcribe (fallback: gpt-4o-transcribe)
- *  - Translation:  gpt-4o-realtime-preview
+ *  - Translation:  gpt-4.1-nano
  *  - No TTS for now
  */
 
@@ -10,7 +10,7 @@
 const OPENAI_API_KEY = localStorage.getItem('OPENAI_API_KEY') || '';
 const ASR_PRIMARY_MODEL = 'gpt-4o-mini-transcribe';
 const ASR_FALLBACK_MODEL = 'gpt-4o-transcribe';
-const TRANSLATE_MODEL   = 'gpt-4o-realtime-preview';
+const TRANSLATE_MODEL   = 'gpt-4.1-nano';
 
 const CHUNK_MS = 3000;          // audio chunk length
 const SYSTEM_PROMPT = `You are a simultaneous interpreter. Translate Japanese <-> English in real-time, preserving meaning and tone.`;
@@ -299,10 +299,15 @@ window.addEventListener('load', function() {
       transform: translateX(-50%) translateY(-100px);
       background: #ff3333;
       color: white;
-      padding: 8px 16px;
+      padding: 12px 20px;
       border-radius: 8px;
       z-index: 10000;
       transition: transform 0.3s ease-out;
+      font-size: 1.2rem;
+      font-weight: 500;
+      min-width: 280px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .error-message.show {
       transform: translateX(-50%) translateY(0);
