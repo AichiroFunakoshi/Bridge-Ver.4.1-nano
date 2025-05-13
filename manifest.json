@@ -1,7 +1,7 @@
 {
-  "name": "Brige.Ver.2.0 PWA",
-  "short_name": "音声翻訳",
-  "description": "日本語↔英語のリアルタイム音声翻訳 (GPT‑4o mini + GPT‑4o realtime‑preview)",
+  "name": "Bridge(Ver.4.1-nano)",
+  "short_name": "Bridge",
+  "description": "日本語と英語間のリアルタイム音声翻訳 - GPT-4.1-nano搭載",
   "icons": [
     {
       "src": "images/icons/icon-120x120.png",
@@ -40,15 +40,11 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0d0d0d",
-  "theme_color": "#0d0d0d",
+  "background_color": "#f5f5f7",
+  "theme_color": "#1a73e8",
   "orientation": "portrait",
-  "categories": [
-    "utilities",
-    "productivity",
-    "translation"
-  ],
+  "categories": ["utilities", "productivity", "translator"],
   "lang": "ja"
 }
