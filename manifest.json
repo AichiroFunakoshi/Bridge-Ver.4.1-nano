@@ -1,7 +1,7 @@
 {
   "name": "Brige.Ver.2.0 PWA",
   "short_name": "音声翻訳",
-  "description": "日本語↔英語のリアルタイム音声翻訳 (GPT‑4o mini + GPT‑4.1 nano)",
+  "description": "日本語↔英語のリアルタイム音声翻訳 (GPT‑4o mini + GPT‑4o realtime‑preview)",
   "icons": [
     {
       "src": "images/icons/icon-120x120.png",

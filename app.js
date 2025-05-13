@@ -2,7 +2,7 @@
  * Brige.Ver.2.0 PWA – GPT-4o Integration
  * ==================================================
  *  - Transcription: gpt-4o-mini-transcribe (fallback: gpt-4o-transcribe)
- *  - Translation:  gpt-4.1-nano
+ *  - Translation:  gpt-4o-realtime-preview
  *  - No TTS for now
  */
 
@@ -10,7 +10,7 @@
 const OPENAI_API_KEY = localStorage.getItem('OPENAI_API_KEY') || '';
 const ASR_PRIMARY_MODEL = 'gpt-4o-mini-transcribe';
 const ASR_FALLBACK_MODEL = 'gpt-4o-transcribe';
-const TRANSLATE_MODEL   = 'gpt-4.1-nano';
+const TRANSLATE_MODEL   = 'gpt-4o-realtime-preview';
 
 const CHUNK_MS = 3000;          // audio chunk length
 const SYSTEM_PROMPT = `You are a simultaneous interpreter. Translate Japanese <-> English in real-time, preserving meaning and tone.`;
@@ -36,6 +36,7 @@ let currentLang   = 'ja';
 let history       = []; // {role, content}
 let isRecording   = false;
 let isProcessing  = false;
+let translationController = null; // AbortControllerを保持
 
 // ====== helpers ==========================================
 function showLoading(b){loadingOverlay.style.display=b?'flex':'none';}
@@ -102,6 +103,11 @@ async function startRecording(lang) {
     isRecording = true;
     showRecordingIndicator(true);
     
+    // 翻訳と字幕をリセット
+    myCaptionEl.textContent = '―';
+    translationEl.textContent = '―';
+    history = [];
+    
     mediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
     mediaRecorder = new MediaRecorder(mediaStream, {mimeType: 'audio/webm;codecs=opus'});
 
@@ -116,9 +122,8 @@ async function startRecording(lang) {
           if (transcript) {
             updateCaption(transcript, false);
             addHistory('user', transcript);
-            const translation = await translate();
+            const translation = await translateStream(transcript);
             if (translation) {
-              updateCaption(translation, true);
               addHistory('assistant', translation);
             }
           }
@@ -146,8 +151,16 @@ function stopRecording() {
   if (mediaStream) {
     mediaStream.getTracks().forEach(t => t.stop());
   }
+  
+  // 進行中の翻訳をキャンセル
+  if (translationController) {
+    translationController.abort();
+    translationController = null;
+  }
+  
   chunks = [];
   isRecording = false;
+  isProcessing = false;
   showRecordingIndicator(false);
 }
 
@@ -169,7 +182,7 @@ async function transcribe(blob, lang) {
     });
     
     if (!res.ok) {
-      console.warn('primary ASR failed, fallback');
+      console.warn('primary ASR failed, fallback to alternative model');
       fd.set('model', ASR_FALLBACK_MODEL);
       res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
@@ -197,18 +210,30 @@ async function transcribe(blob, lang) {
   }
 }
 
-async function translate() {
+async function translateStream(text) {
+  if (!text || text.trim() === '') return '';
+  
+  // 進行中の翻訳があればキャンセル
+  if (translationController) {
+    translationController.abort();
+  }
+  
+  translationController = new AbortController();
+  const signal = translationController.signal;
+  
   showLoading(true);
+  let translationResult = '';
+  
   try {
-    const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...history.slice(-SLIDING_CONTEXT)
-    ];
-    
     // オフライン状態をチェック
     if (!navigator.onLine) {
       throw new Error('オフラインです。インターネット接続を確認してください。');
     }
+    
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...history.slice(-SLIDING_CONTEXT)
+    ];
     
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -219,8 +244,9 @@ async function translate() {
       body: JSON.stringify({
         model: TRANSLATE_MODEL,
         messages,
-        stream: false
-      })
+        stream: true  // ストリーミング有効化
+      }),
+      signal
     });
     
     if (!res.ok) {
@@ -234,11 +260,49 @@ async function translate() {
       throw new Error(errorData.error?.message || `APIエラー: ${res.status}`);
     }
     
-    const data = await res.json();
+    // ストリーミングレスポンスを処理
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    
+    // 翻訳テキストの表示をクリア
+    updateCaption('', true);
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      // チャンクをデコード
+      const chunk = decoder.decode(value);
+      
+      // チャンクから各行を処理
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+          try {
+            const data = JSON.parse(line.substring(6));
+            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+              const content = data.choices[0].delta.content;
+              translationResult += content;
+              updateCaption(translationResult, true);
+            }
+          } catch (e) {
+            console.error('ストリーミングレスポンス解析エラー:', e);
+          }
+        }
+      }
+    }
+    
     showLoading(false);
-    return data.choices[0].message.content.trim();
+    return translationResult;
   } catch (error) {
     showLoading(false);
+    
+    // 中断エラーの場合は警告を表示しない
+    if (error.name === 'AbortError') {
+      console.log('翻訳リクエストがキャンセルされました');
+      return '';
+    }
+    
     console.error('翻訳エラー:', error);
     showError(error.message || '翻訳中にエラーが発生しました');
     return '';
