@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // DOM要素
     const startJapaneseBtn = document.getElementById('startJapaneseBtn');
-    const startEnglishBtn = document.getElementById('startEnglishBtn');
+    const startKoreanBtn = document.getElementById('startKoreanBtn');
     const stopBtn = document.getElementById('stopBtn');
     const resetBtn = document.getElementById('resetBtn');
     const status = document.getElementById('status');
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isRecording = false;
     let currentTranslationController = null;
     let translationInProgress = false;
-    let selectedLanguage = ''; // 'ja' は日本語、'en' は英語
+    let selectedLanguage = ''; // 'ja' は日本語、'ko' は韓国語
     let lastTranslationTime = 0;
     
     // 重複防止のための変数
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 言語ボタンを有効化
         startJapaneseBtn.addEventListener('click', () => startRecording('ja'));
-        startEnglishBtn.addEventListener('click', () => startRecording('en'));
+        startKoreanBtn.addEventListener('click', () => startRecording('ko'));
         stopBtn.addEventListener('click', stopRecording);
         resetBtn.addEventListener('click', resetContent);
         
@@ -192,11 +192,11 @@ document.addEventListener('DOMContentLoaded', function() {
         changeFontSize(savedFontSize);
         
         // 翻訳システムプロンプト
-        window.SYSTEM_PROMPT = `あなたは日本語と英語の専門的な同時通訳者です。
+        window.SYSTEM_PROMPT = `あなたは日本語と韓国語の専門的な同時通訳者です。
 音声入力データを以下のルールに従って読みやすいテキストに変換して翻訳してください：
 
-1. 元のテキストが日本語の場合は英語に翻訳する。
-2. 元のテキストが英語の場合は日本語に翻訳する。
+1. 元のテキストが日本語の場合は韓国語に翻訳する。
+2. 元のテキストが韓国語の場合は日本語に翻訳する。
 3. 「えー」「うー」などのフィラーや冗長な表現は除去する。
 4. データが不足している場合は文脈に基づいて補完する。
 5. 専門用語、固有名詞、文化的な言及は正確に保持する。
@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // 言語インジケータを更新
             if (selectedLanguage === 'ja') {
                 sourceLanguage.textContent = '日本語';
-                targetLanguage.textContent = 'English';
+                targetLanguage.textContent = '한국어';
             } else {
-                sourceLanguage.textContent = 'English';
+                sourceLanguage.textContent = '한국어';
                 targetLanguage.textContent = '日本語';
             }
             
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isRecordingState) {
             // 開始ボタンを非表示、停止ボタンを表示
             startJapaneseBtn.style.display = 'none';
-            startEnglishBtn.style.display = 'none';
+            startKoreanBtn.style.display = 'none';
             stopBtn.style.display = 'flex';
             stopBtn.disabled = false;
             resetBtn.disabled = true; // Recordingはリセット無効化
@@ -357,9 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // 開始ボタンを表示、停止ボタンを非表示
             startJapaneseBtn.style.display = 'flex';
-            startEnglishBtn.style.display = 'flex';
+            startKoreanBtn.style.display = 'flex';
             startJapaneseBtn.disabled = false;
-            startEnglishBtn.disabled = false;
+            startKoreanBtn.disabled = false;
             stopBtn.style.display = 'none';
             stopBtn.disabled = true;
             resetBtn.disabled = false; // 録音停止中はリセット有効化
@@ -384,16 +384,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 言語インジケータを更新
         if (language === 'ja') {
             sourceLanguage.textContent = '日本語';
-            targetLanguage.textContent = 'English';
+            targetLanguage.textContent = '한국어';
         } else {
-            sourceLanguage.textContent = 'English';
+            sourceLanguage.textContent = '한국어';
             targetLanguage.textContent = '日本語';
         }
         
         // UIを更新
         isRecording = true;
         document.body.classList.add('recording');
-        status.textContent = 'Recording';
+        status.textContent = '録音中';
         status.classList.remove('idle', 'error');
         status.classList.add('recording');
         
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Web Speech APIを使用して言語を明示的に設定
         try {
             // 認識言語を設定
-            recognition.lang = language === 'ja' ? 'ja-JP' : 'en-US';
+            recognition.lang = language === 'ja' ? 'ja-JP' : 'ko-KR';
             recognition.start();
         } catch (e) {
             console.error('音声認識開始エラー', e);
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // 選択された言語ボタンに基づいて元言語を決定
-            const sourceLanguageStr = selectedLanguage === 'ja' ? '日本語' : '英語';
+            const sourceLanguageStr = selectedLanguage === 'ja' ? '日本語' : '한국어';
             
             // 新しいAbortControllerを作成
             currentTranslationController = new AbortController();
