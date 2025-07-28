@@ -1,7 +1,7 @@
 {
-  "name": "Bridge(Ver.4.1-nano.2)",
+  "name": "Bridge(Ver.4.1-nano)",
   "short_name": "Bridge",
-  "description": "日本語と韓国語間のリアルタイム音声翻訳 - GPT-4.1-nano搭載（バージョン2）",
+  "description": "日本語と英語間のリアルタイム音声翻訳 - GPT-4.1-nano搭載",
   "icons": [
     {
       "src": "images/icons/icon-120x120.png",
