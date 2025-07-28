@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startJapaneseBtn = document.getElementById('startJapaneseBtn');
     const startEnglishBtn = document.getElementById('startEnglishBtn');
     const stopBtn = document.getElementById('stopBtn');
+    const stopBtnText = document.getElementById('stopBtnText');
     const resetBtn = document.getElementById('resetBtn');
     const status = document.getElementById('status');
     const errorMessage = document.getElementById('errorMessage');
@@ -385,9 +386,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (language === 'ja') {
             sourceLanguage.textContent = '日本語';
             targetLanguage.textContent = '英語';
+            // 停止ボタンのテキストを日本語に設定
+            stopBtnText.textContent = '停止';
         } else {
             sourceLanguage.textContent = '英語';
             targetLanguage.textContent = '日本語';
+            // 停止ボタンのテキストを英語に設定
+            stopBtnText.textContent = 'Stop';
         }
         
         // UIを更新
