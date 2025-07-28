@@ -92,7 +92,7 @@ body {
     background-color: #e74c3c;
 }
 
-.language-button.korean {
+.language-button.english {
     background-color: #2ecc71;
 }
 
@@ -239,6 +239,7 @@ body {
     flex: 1;
 }
 
+/* 文字サイズクラス */
 .result-content.size-small {
     font-size: 20px;
 }
@@ -323,12 +324,14 @@ body {
     background-color: rgba(26, 115, 232, 0.1);
 }
 
+/* エラーメッセージスタイル */
 .error-message {
     color: #dc3545;
     font-style: italic;
     margin-top: 5px;
 }
 
+/* API設定モーダル */
 .modal {
     display: none;
     position: fixed;
@@ -426,6 +429,7 @@ body {
     text-decoration: underline;
 }
 
+/* Media Queries for mobile responsiveness */
 @media (max-width: 600px) {
     body {
         padding: 10px;
@@ -491,6 +495,7 @@ body {
     }
 }
 
+/* モバイル用の追加最適化 */
 @media (max-width: 480px) {
     .app-title {
         font-size: 22px;
